@@ -101,29 +101,28 @@ int *mergeTrans(csr* inMatrix, int i, int j)
 
 int main(int argc, char **argv)
 {   
-    csr* inMatrix = getCsr(5,15);
-    /*
-    char *filename = NULL;
-    if(argc > 1)
-    {
-        filename = argv[1];
-    }
-    if(filename == NULL)
-    {
-        printf( "Error: No file provided!\n");
-        exit();
-    }
-    printf("Matrix file name : %s" , filename);
-    int *csrRowPtrA;
-    int *csrColIdxA;
-    */
+    int num_threads;
+    char* filename;
+    if(argc > 1) num_threads  = atoi(argv[1]);
+    else num_threads = 4;
+
+    if(argc > 2) filename = argv[2];
+    else filename = "./testcases/testcase.data";
+
     //toy input to be replaced
 
-    int n = 5, nnz= 15;
-    int csrRowPtr[] = {0 ,2 ,6 ,10 ,15, 15};
-    int csrColIdx[] = {1, 3, 1, 1, 2, 3, 2, 3, 4, 5, 1, 2, 3, 4, 5};
-    int csrVal[] =    {4, 2, 2, 1, 4, 3, 2, 4, 3, 2, 1, 4, 3, 4, 3};
-    int * cscColPtr;
+    // int n = 5, nnz= 15;
+    // int csrRowPtr[] = {0 ,2 ,6 ,10 ,15, 15};
+    // int csrColIdx[] = {1, 3, 1, 1, 2, 3, 2, 3, 4, 5, 1, 2, 3, 4, 5};
+    // int csrVal[] =    {4, 2, 2, 1, 4, 3, 2, 4, 3, 2, 1, 4, 3, 4, 3};
+
+    int n, nnz;
+    int *csrRowPtr, *csrColIdx, *csrVal;
+    int *cscColPtr;
+
+    init_values(filename, &csrRowPtr, &csrColIdx, &csrVal, &n, &nnz);
+
+    csr* inMatrix = getCsr(n - 1, nnz);
     int i = 0, j = 0, k =0;
     int tid;
     int chunk = 3;
