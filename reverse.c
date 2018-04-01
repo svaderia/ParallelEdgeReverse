@@ -101,12 +101,18 @@ int *mergeTrans(csr* inMatrix, int i, int j)
 
 int main(int argc, char **argv)
 {   
-    csr* inMatrix = getCsr(5,15);
+    
+    int threads;
     /*
     char *filename = NULL;
     if(argc > 1)
     {
         filename = argv[1];
+    }
+    else
+    {
+        printf( "Error: No file provided!\n");
+        exit();
     }
     if(filename == NULL)
     {
@@ -117,8 +123,23 @@ int main(int argc, char **argv)
     int *csrRowPtrA;
     int *csrColIdxA;
     */
-    //toy input to be replaced
+    if(argc >= 2)
+    {
+       threads  = atoi(argv[2]);
+    }
+    if(threads == 0)
+    {       
+        printf( "Num of threads not given.\n");
+        exit(0);
+    }
+    printf("Num of Threads : %d" ,threads );
 
+    char* filename = "./testcases/testcase";
+    FILE* file = fopen(fileName, "r");
+    
+
+    //toy input to be replaced
+    csr* inMatrix = getCsr(5,15);
     int n = 5, nnz= 15;
     int csrRowPtr[] = {0 ,2 ,6 ,10 ,15, 15};
     int csrColIdx[] = {1, 3, 1, 1, 2, 3, 2, 3, 4, 5, 1, 2, 3, 4, 5};
@@ -130,7 +151,7 @@ int main(int argc, char **argv)
     inMatrix->csrRowPtr = csrRowPtr;
 
 
-    //omp_set_num_threads(4);
+    omp_set_num_threads(threads);
     #pragma omp parallel for private(j)
     for(j = 0; j < inMatrix->nnz; j++){
         inMatrix->tuple[j] = (tuple*) calloc(1 ,sizeof(tuple));
