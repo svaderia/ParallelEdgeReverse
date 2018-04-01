@@ -74,30 +74,27 @@ int *mergeTrans(csr* inMatrix, int i, int j)
         //printf("i: %d, j:  %d mid: %d \n",i , j ,mid );
         printf("\n  %d %d %d\n" ,i,j,mid);
 
-        {
-           #pragma omp task private(arr1)
-            {
-                arr1 = mergeTrans(inMatrix,i,mid);        //left recursion
-            }
-           #pragma omp task private(arr2)
-            {
-                 arr2 = mergeTrans(inMatrix,mid+1,j);    //right recursion
-            }
-        }
-
+        
+        #pragma omp task shared(arr1)
+            arr1 = mergeTrans(inMatrix,i,mid);        //left recursion
+        
+        #pragma omp task shared(arr2)
+            arr2 = mergeTrans(inMatrix,mid+1,j);    //right recursion
+        
         #pragma omp taskwait
-        {   merge(inMatrix, i,mid,j);    //merging of two sorted sub-arrays
+        {   
+            merge(inMatrix, i,mid,j);    //merging of two sorted sub-arrays
             return sum( inMatrix->n, arr1, arr2 );
         }
     }
     else
     {
-    int * arr = (int*)calloc(inMatrix->n+1,sizeof(int));
-    int  k = 0;
-    for(k =inMatrix->tuple[i]-> csrCollIdx; k < inMatrix->n+1; k++){
-        arr[k] = 1;
-    }
-    return arr;
+        int * arr = (int*)calloc(inMatrix->n+1,sizeof(int));
+        int  k = 0;
+        for(k =inMatrix->tuple[i]-> csrCollIdx; k < inMatrix->n+1; k++){
+            arr[k] = 1;
+        }
+        return arr;
     }
 }
 
