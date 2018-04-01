@@ -22,7 +22,7 @@ def main():
 
     print(V)
     print(E)
-    with open("testcase", "w") as f:
+    with open("testcase.data", "w") as f:
         rs = CustomRandomState()
         rvs = stats.poisson(25, loc=10).rvs
         S = random(V, V, density=E, format='csr', random_state=rs, data_rvs=rvs)
