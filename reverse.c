@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "omp.h"
+#include <omp.h>
 
 struct tuple{
     int csrRowIdx;
@@ -72,21 +72,23 @@ int *mergeTrans(csr* inMatrix, int i, int j)
     {
         mid=(int)(i+j)/2;
         //printf("i: %d, j:  %d mid: %d \n",i , j ,mid );
-        
-        //#pragma omp parallel sections 
+        printf("\n  %d %d %d\n" ,i,j,mid);
+
         {
-           #pragma omp task
+           #pragma omp task private(arr1)
             {
                 arr1 = mergeTrans(inMatrix,i,mid);        //left recursion
             }
-           #pragma omp task
+           #pragma omp task private(arr2)
             {
                  arr2 = mergeTrans(inMatrix,mid+1,j);    //right recursion
             }
         }
-        merge(inMatrix, i,mid,j);    //merging of two sorted sub-arrays
-        
-        return sum( inMatrix->n, arr1, arr2 );
+
+        #pragma omp taskwait
+        {   merge(inMatrix, i,mid,j);    //merging of two sorted sub-arrays
+            return sum( inMatrix->n, arr1, arr2 );
+        }
     }
     else
     {
@@ -119,15 +121,19 @@ int main(int argc, char **argv)
     int *csrColIdxA;
     */
     //toy input to be replaced
+
     int n = 5, nnz= 15;
     int csrRowPtr[] = {0 ,2 ,6 ,10 ,15, 15};
     int csrColIdx[] = {1, 3, 1, 1, 2, 3, 2, 3, 4, 5, 1, 2, 3, 4, 5};
     int csrVal[] =    {4, 2, 2, 1, 4, 3, 2, 4, 3, 2, 1, 4, 3, 4, 3};
+    int * cscColPtr;
     int i = 0, j = 0, k =0;
     int tid;
     int chunk = 3;
     inMatrix->csrRowPtr = csrRowPtr;
 
+
+    //omp_set_num_threads(4);
     #pragma omp parallel for private(j)
     for(j = 0; j < inMatrix->nnz; j++){
         inMatrix->tuple[j] = (tuple*) calloc(1 ,sizeof(tuple));
@@ -158,9 +164,11 @@ int main(int argc, char **argv)
     printf("\n");
     printf("\n");
     
-
-
-    int * cscColPtr = mergeTrans(inMatrix, 0, nnz-1);
+   #pragma omp parallel
+    {
+        #pragma omp single
+        cscColPtr = mergeTrans(inMatrix, 0, nnz-1);
+    }
 
     
     for(j = 0; j<nnz; j++){
