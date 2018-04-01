@@ -26,6 +26,7 @@ def main():
         rs = CustomRandomState()
         rvs = stats.poisson(25, loc=10).rvs
         S = random(V, V, density=E, format='csr', random_state=rs, data_rvs=rvs)
+        fwrite("{} {} \n".format(len(S.indices), len(S.indptr)))
         f.write(" ".join([str(x) for x in S.indptr]) + '\n')
         f.write(" ".join([str(x) for x in S.indices]) + '\n')
         f.write(" ".join([str(int(x)) for x in S.data]) + '\n')
