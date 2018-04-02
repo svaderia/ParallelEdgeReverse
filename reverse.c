@@ -136,7 +136,7 @@ int main(int argc, char **argv)
     inMatrix->csrRowPtr = csrRowPtr;
 
 
-    omp_set_num_threads(4);
+    omp_set_num_threads(num_threads);
     #pragma omp parallel for private(j)
     for(j = 0; j < inMatrix->nnz; j++){
         inMatrix->tuple[j] = (tuple*) calloc(1 ,sizeof(tuple));
