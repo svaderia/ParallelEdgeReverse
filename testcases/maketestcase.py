@@ -16,7 +16,7 @@ class CustomRandomState(object):
 
 def main():
     V = [10**x for x in [1, 2, 4, 6, 8, 10]] [int(sys.argv[1])]
-    # V = 5
+    #V = 7
     base = 2
     c = 2
     E = [1.1, 3, log(log(V, base), base), log(V, base) / c, log(V, base)] [int(sys.argv[2])] / V
@@ -28,7 +28,6 @@ def main():
     S = random(V, V, density=E, format='csr', random_state=rs, data_rvs=rvs)
     print(type(S))
     with open("testcase.data", "w") as f:
-
         f.write("{} {} \n".format(len(S.indices), len(S.indptr)))
         f.write(" ".join([str(x) for x in S.indptr]) + '\n')
         f.write(" ".join([str(x) for x in S.indices]) + '\n')
@@ -38,6 +37,7 @@ def main():
     
     with open("answer.data", "w") as f:
         # f.write("{} {} \n".format(len(S.indices), len(S.indptr)))
+        f.write("\n")
         f.write(" ".join([str(x) for x in S.indptr]) + '\n')
         f.write(" ".join([str(x) for x in S.indices]) + '\n')
         f.write(" ".join([str(int(x)) for x in S.data]) + '\n')

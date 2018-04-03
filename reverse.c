@@ -37,6 +37,40 @@ int* sum(int n, int* arr1, int* arr2){
     return arr1;
 }
 
+int comparator (const void * elem1, const void * elem2)  
+{
+    int f = ((tuple*)elem1)->csrCollIdx;
+    int s = ((tuple*)elem2)->csrCollIdx;
+    if (f > s) return  1;
+    if (f < s) return -1;
+    return 0;
+}
+
+tuple** insertInOrder(tuple** arr, int start, int size, int insert){
+    int i;
+    for(i = start; i < size + 1; i ++){
+        if(comparator(arr[insert], arr[i]) < 0){
+            break;
+        }
+    }
+
+    tuple* temp;
+    for(int j = i; j < size + 1; j ++){
+        temp = arr[j];
+        arr[j] = arr[insert];
+        arr[insert] = temp;
+    }
+
+    return arr;
+}
+
+tuple** insertionSort(tuple** arr, int start, int size){
+    for(int i = start; i < size - 1; i ++){
+        arr = insertInOrder(arr, start, i, i+1);
+    }
+    return arr;
+}
+
 void merge(csr* inMatrix, int start1, int mid, int end2)
 {   
     tuple** a = inMatrix->tuple;    
@@ -71,13 +105,9 @@ int *mergeTrans(csr* inMatrix, int i, int j)
     int mid;
     int* arr1;
     int* arr2;
-    if(i<j)
+    if(i + 10000 < j)
     {
         mid=(int)(i+j)/2;
-        // printf("i: %d, j:  %d mid: %d \n",i , j ,mid );
-        // for(int k = 0; k < inMatrix->n, k++){
-        //   printf("%d, ",inMatrix)
-        // }
         #pragma omp task shared(arr1, inMatrix,i,mid)
             arr1 = mergeTrans(inMatrix,i,mid);        //left recursion
         
@@ -85,20 +115,22 @@ int *mergeTrans(csr* inMatrix, int i, int j)
             arr2 = mergeTrans(inMatrix,mid+1,j);    //right recursion
         
         #pragma omp taskwait
-        {   
-            merge(inMatrix, i,mid,j);    //merging of two sorted sub-arrays
+        {   merge(inMatrix, i,mid,j);    //merging of two sorted sub-arrays
             arr1 =  sum( inMatrix->n, arr1, arr2 );
             free(arr2);
             return arr1;
         }
     }
     else{
-        int * arr = (int*)calloc(inMatrix->n+1,sizeof(int));
-        int  k = 0;
-        for(k =inMatrix->tuple[i]-> csrCollIdx+1; k < inMatrix->n+1; k++){
-            arr[k] = 1;
-        }
-        return arr;
+        arr1 = (int*)calloc(inMatrix->n+1,sizeof(int));
+        int  k = 0, l = 0;
+        for(l = i; l <= j; l++){
+            for(k =inMatrix->tuple[l]-> csrCollIdx+1; k < inMatrix->n+1; k++){
+                arr1[k] += 1;
+            }
+        }   
+        inMatrix -> tuple = insertionSort(inMatrix -> tuple, i, j + 1);
+        return arr1;
     }
 }
 
@@ -108,7 +140,7 @@ int main(int argc, char **argv)
     int num_threads;
     char* filename;
     if(argc > 1) num_threads  = atoi(argv[1]);
-    else num_threads = 4;
+    else num_threads = 1;
 
     if(argc > 2) filename = argv[2];
     else{
@@ -116,12 +148,6 @@ int main(int argc, char **argv)
         memset(filename, '\0', 24);
         strcpy(filename , "testcases/testcase.data");
     }
-    //toy input to be replaced
-
-    // int n = 5, nnz= 15;
-    // int csrRowPtr[] = {0 ,2 ,6 ,10 ,15, 15};
-    // int csrColIdx[] = {1, 3, 1, 1, 2, 3, 2, 3, 4, 5, 1, 2, 3, 4, 5};
-    // int csrVal[] =    {4, 2, 2, 1, 4, 3, 2, 4, 3, 2, 1, 4, 3, 4, 3};
 
     int n, nnz;
     int *csrRowPtr, *csrColIdx, *csrVal;
@@ -131,26 +157,25 @@ int main(int argc, char **argv)
 
     csr* inMatrix = getCsr(n-1, nnz);
     int i = 0, j = 0, k =0;
-    int tid;
     int chunk = 3;
     inMatrix->csrRowPtr = csrRowPtr;
 
-
     omp_set_num_threads(num_threads);
-    #pragma omp parallel for private(j)
+
+   #pragma omp parallel for private(j)
     for(j = 0; j < inMatrix->nnz; j++){
         inMatrix->tuple[j] = (tuple*) calloc(1 ,sizeof(tuple));
         inMatrix->tuple[j]-> csrRowIdx = 0 ;
         inMatrix->tuple[j]-> csrCollIdx = csrColIdx[j];
         inMatrix->tuple[j]-> weight = csrVal[j];
     }
-    
+
+    double starttime = omp_get_wtime();    
     #pragma omp parallel for  private(k,j)
     for(j = 1; j<inMatrix->n+1; j++){
         for(k = inMatrix->csrRowPtr[j-1]; k < inMatrix->csrRowPtr[j]; k++ ){
                inMatrix->tuple[k]-> csrRowIdx = j-1;        
         }
-        //printf("%d, ", inMatrix->csrRowPtr[j]);
     }
 
      
@@ -162,34 +187,27 @@ int main(int argc, char **argv)
     // }
 
 
-   #pragma omp parallel
+    #pragma omp parallel
     {
-        #pragma omp single
-        cscColPtr = mergeTrans(inMatrix, 0, nnz-1);
+       #pragma omp single
+       cscColPtr = mergeTrans(inMatrix, 0, nnz-1);
     }
-    
-
-
-    // printf("\n");
+    printf("time taken %14.7f \n", (omp_get_wtime() - starttime));
+        // printf("\n");
     // for(j = 0; j<nnz; j++){
     //     printf("pos: %d, ", inMatrix->tuple[j]-> csrRowIdx );
     //     printf("%d ", inMatrix->tuple[j]-> csrCollIdx );
     //     printf("wt :%d \n", inMatrix->tuple[j]->weight );
     // }
-
     for(j = 0; j<inMatrix->n; j++){
         printf("%d ", cscColPtr[j] );
     }
     printf("%d", cscColPtr[j] );
     printf("\n");       
-    // for(j = 0; j<nnz; j++){
-    //      printf("%d, ", inMatrix->tuple[j]-> csrCollIdx );
-    //  }
-    // printf("\n");
+
     for(j = 0; j<nnz-1; j++){
         printf("%d ", inMatrix->tuple[j]-> csrRowIdx );
-    }
-    //printf("%d", inMatrix->tuple[j]-> csrRowIdx );    
+    } 
     printf("%d", inMatrix->tuple[j]-> csrRowIdx );
     printf("\n");
     for(j = 0; j<nnz-1; j++){
@@ -198,4 +216,5 @@ int main(int argc, char **argv)
     printf("%d", inMatrix->tuple[j]->weight );
     
     printf("\n");
+    
 }

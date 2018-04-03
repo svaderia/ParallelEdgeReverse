@@ -9,3 +9,6 @@ reverse.o : reverse.c myRead.h
 
 clean :
 	rm *.o exe
+
+check :
+	diff out.txt testcases/answer.data
