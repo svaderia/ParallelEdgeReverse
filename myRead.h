@@ -7,13 +7,9 @@
 #define _TOKEN
 #define MAX_WORD_SIZE 140
 
-extern int offset;
-
-extern bool eof;
-
 void init_values(char* path, int** csrRowPtr, int** csrColIdx, int** csrVal, int *dim, int *nnz);
 
-char* getWord(FILE* fp, char* b, int k);
+char* getWord(FILE* fp, char* b, int k, int* offset, bool* eof);
 
 void print_matrix(int** mat, int dim);
 

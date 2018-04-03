@@ -4,10 +4,7 @@
 #include <dirent.h>
 #include "myRead.h"
 
-int offset = 0;
-bool eof = false;
-
-FILE *getStream(FILE *fp, char* b, int k)
+FILE *getStream(FILE *fp, char* b, int k, bool* eof)
 {	int count = -1;
 	if (!eof)
         count = fread(b, 1, k, fp);
@@ -17,23 +14,23 @@ FILE *getStream(FILE *fp, char* b, int k)
     return fp;
 }
 
-char* getWord(FILE* fp, char* b, int k){
+char* getWord(FILE* fp, char* b, int k, int* offset, bool* eof){
     char* temp = (char*) malloc(MAX_WORD_SIZE * sizeof(char));
     int i = 0;
     memset(temp, 0, MAX_WORD_SIZE);
     while(1){
-        if (offset == k || strlen(b) == 0 || b[offset] == '\0'){
-			if( eof ){
+        if ((*offset) == k || strlen(b) == 0 || b[(*offset)] == '\0'){
+			if( *eof ){
 				return temp;
 			}
 			memset(b, 0, k);
-            fp = getStream(fp, b, k);
-            offset = 0;
+            fp = getStream(fp, b, k, eof);
+            (*offset) = 0;
 		}
-        if('0' <= b[offset] && b[offset] <= '9'){
-            temp[i++] = b[offset++];
+        if('0' <= b[(*offset)] && b[(*offset)] <= '9'){
+            temp[i++] = b[(*offset)++];
         }else{
-            offset++;
+            (*offset)++;
             if(temp[0] == '\0') continue;
             else return temp;
         }
@@ -57,22 +54,22 @@ void init_values(char* path, int** csrRowPtr, int** csrColIdx, int** csrVal, int
     char* b = (char*) malloc(4096 * sizeof(char));
     char* word_buffer;
     int k = 4096;
-    offset = 0;
-    eof = false;
+    int offset = 0;
+    bool eof = false;
     memset(b, 0, k);
     
     for(int j = 0; j < *dim; j++){
-        word_buffer = getWord(fp, b, k);
+        word_buffer = getWord(fp, b, k, &offset, &eof);
         (*csrRowPtr)[j] = atoi(word_buffer);
         free(word_buffer);
     }
     for(int j = 0; j < *nnz; j++){
-        word_buffer = getWord(fp, b, k);
+        word_buffer = getWord(fp, b, k, &offset, &eof);
         (*csrColIdx)[j] = atoi(word_buffer);
         free(word_buffer);
     }
     for(int j = 0; j < *nnz; j++){
-        word_buffer = getWord(fp, b, k);
+        word_buffer = getWord(fp, b, k, &offset, &eof);
         (*csrVal)[j] = atoi(word_buffer);
         free(word_buffer);
     }
