@@ -1,3 +1,9 @@
+testcase :
+	python3 maketestcase.py ${v} ${e}
+
+run :
+	./exe ${t}
+
 compileAll : myRead.o reverse.o
 	gcc -g -fopenmp -o exe myRead.o reverse.o
 

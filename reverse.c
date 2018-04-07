@@ -179,26 +179,12 @@ int main(int argc, char **argv)
     }
 
      
-    // printf("\n");
-    // for(j = 0; j<nnz; j++){
-    //     printf("pos: %d, ", inMatrix->tuple[j]-> csrRowIdx );
-    //     printf("%d ", inMatrix->tuple[j]-> csrCollIdx );
-    //     printf("wt :%d \n", inMatrix->tuple[j]->weight );
-    // }
-
-
     #pragma omp parallel
     {
        #pragma omp single
        cscColPtr = mergeTrans(inMatrix, 0, nnz-1);
     }
     printf("time taken %14.7f \n", (omp_get_wtime() - starttime));
-        // printf("\n");
-    // for(j = 0; j<nnz; j++){
-    //     printf("pos: %d, ", inMatrix->tuple[j]-> csrRowIdx );
-    //     printf("%d ", inMatrix->tuple[j]-> csrCollIdx );
-    //     printf("wt :%d \n", inMatrix->tuple[j]->weight );
-    // }
     for(j = 0; j<inMatrix->n; j++){
         printf("%d ", cscColPtr[j] );
     }

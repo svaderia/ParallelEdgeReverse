@@ -19,7 +19,7 @@ def main():
     #V = 7
     base = 2
     c = 2
-    E = [1.1, 3, log(log(V, base), base), log(V, base) / c, log(V, base)] [int(sys.argv[2])] / V
+    E = [1.1, log(log(V, base), base), log(V, base) / c, log(V, base)] [int(sys.argv[2])] / V
 
     print(V)
     print(E)
