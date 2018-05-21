@@ -18,7 +18,7 @@
 
 # Algorithm
 
-![Diagram](Plots/Diagram.png)
+![Diagram](Plots/Diagrams.png)
 
 - In CSR we traverse in Row-major order and to find the transpose we need to move across the matrix in Column-major order. If we need all elements in their column major order we must first sort according to row index and then sort (stably) according to column index.
 - The input matrix already gives us the non-zero elements sorted in column index wise. 
